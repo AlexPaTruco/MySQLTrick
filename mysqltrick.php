@@ -7,22 +7,25 @@ class mysqlTrickClient {
     private $host;
     private $user;
     private $password;
+    private $link;
 
     public function __construct($host = "localhost", $user = "root", $password = "") {
 
         $this->host = $host;
         $this->user = $user;
         $this->password = $password;
-        mysql_connect($host, $user, $password) or die(mysql_error());
+        $this->link = mysqli_connect($host, $user, $password) or die(mysqli_error());
     }
 
     public function close() {
-        return mysql_close();
+        return mysqli_close($this->link);
     }
 
     public function connect() {
-        mysql_close();
-        return mysql_connect($this->host, $this->user, $this->password);
+        mysqli_close($this->link);
+        $this->link = mysqli_connect($this->host, $this->user, $this->password);
+        
+        return $this->link;
     }
 
     public function dropDB($db) {
@@ -32,7 +35,7 @@ class mysqlTrickClient {
         }
         
         $query = "DROP DATABASE $db";
-        $result = mysql_query($query);
+        $result = mysqli_query($this->link, $query);
 
         if ($result) {
             return true;
@@ -42,9 +45,9 @@ class mysqlTrickClient {
     }
 
     public function listDBs() {
-        $db_list = mysql_list_dbs();
+        $db_list = mysqli_query($this->link, "SHOW DATABASES");
 
-        while ($db = mysql_fetch_array($db_list)) {
+        while ($db = mysqli_fetch_array($db_list)) {
             $dbnames[] = $db[0];
         }
 
@@ -53,7 +56,7 @@ class mysqlTrickClient {
 
     public function selectDB($dbname) {
 
-        $db = new database($dbname);
+        $db = new database($this->link, $dbname);
 
         return $db;
     }

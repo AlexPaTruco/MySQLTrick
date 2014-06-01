@@ -5,16 +5,18 @@ require_once 'table.php';
 class database {
     
     private $dbname;
+    private $link;
     
-    public function __construct($dbname) {
+    public function __construct($link, $dbname) {
         $this->dbname = $dbname;
+        $this->link = $link;
         
-        mysql_select_db($this->dbname) or die(mysql_error());
+        mysqli_select_db($this->link, $this->dbname) or die(mysqli_error());
     }
     
     public function drop() {
         $query = "DROP DATABASE $this->dbname";
-        $result = mysql_query($query);
+        $result = mysqli_query($this->link, $query);
         
         if($result) {
             return true;
@@ -29,9 +31,9 @@ class database {
     
     public function listTables() {
         $query = "SHOW TABLES FROM $this->dbname";
-        $result = mysql_query($query);
+        $result = mysqli_query($this->link, $query);
         
-        while ($row = mysql_fetch_array($result)) {
+        while ($row = mysqli_fetch_array($result)) {
             $table_list[] = $row[0];
         }
         
@@ -39,7 +41,7 @@ class database {
     }
     
     public function selectTable($table_name) {
-        $table = new table($table_name);
+        $table = new table($this->link, $table_name);
         
         return $table;
     }
